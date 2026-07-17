@@ -1,6 +1,5 @@
 FROM python:3.10-slim
 
-# Remplacement de libgl1-mesa-glx par libgl1
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
@@ -12,10 +11,20 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pré-téléchargement d'ArcFace, RetinaFace et des modèles de Liveness (Anti-Spoofing)
-RUN python -c "from deepface import DeepFace; import numpy as np; img = np.zeros((100,100,3), dtype=np.uint8); \
-    try: DeepFace.extract_faces(img_path=img, anti_spoofing=True, enforce_detection=False) except: pass; \
-    try: DeepFace.verify(img, img, model_name='ArcFace', enforce_detection=False) except: pass"
+# Pré-téléchargement propre d'ArcFace, RetinaFace et de la Liveness avec des retours à la ligne valides en Python
+RUN python -c " \n\
+from deepface import DeepFace \n\
+import numpy as np \n\
+img = np.zeros((100, 100, 3), dtype=np.uint8) \n\
+try: \n\
+    DeepFace.extract_faces(img_path=img, anti_spoofing=True, enforce_detection=False) \n\
+except Exception: \n\
+    pass \n\
+try: \n\
+    DeepFace.verify(img, img, model_name='ArcFace', enforce_detection=False) \n\
+except Exception: \n\
+    pass \n\
+"
 
 COPY . .
 
