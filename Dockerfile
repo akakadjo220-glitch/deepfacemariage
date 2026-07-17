@@ -11,20 +11,19 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pré-téléchargement propre d'ArcFace, RetinaFace et de la Liveness avec des retours à la ligne valides en Python
-RUN python -c " \n\
-from deepface import DeepFace \n\
-import numpy as np \n\
-img = np.zeros((100, 100, 3), dtype=np.uint8) \n\
-try: \n\
-    DeepFace.extract_faces(img_path=img, anti_spoofing=True, enforce_detection=False) \n\
-except Exception: \n\
-    pass \n\
-try: \n\
-    DeepFace.verify(img, img, model_name='ArcFace', enforce_detection=False) \n\
-except Exception: \n\
-    pass \n\
-"
+# Génération propre du script d'initialisation et exécution
+RUN printf "from deepface import DeepFace\n\
+import numpy as np\n\
+img = np.zeros((100, 100, 3), dtype=np.uint8)\n\
+try:\n\
+    DeepFace.extract_faces(img_path=img, anti_spoofing=True, enforce_detection=False)\n\
+except Exception:\n\
+    pass\n\
+try:\n\
+    DeepFace.verify(img, img, model_name='ArcFace', enforce_detection=False)\n\
+except Exception:\n\
+    pass\n\
+" > warmup.py && python warmup.py && rm warmup.py
 
 COPY . .
 
