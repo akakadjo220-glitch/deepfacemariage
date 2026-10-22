@@ -1,6 +1,6 @@
 fastapi==0.110.0
 uvicorn==0.28.0
-deepface==0.0.91
+deepface==0.0.93
 python-multipart==0.0.9
 tensorflow-cpu==2.15.0
 tf-keras==2.15.0

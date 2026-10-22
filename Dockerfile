@@ -8,22 +8,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
+# torch (CPU seulement) : nécessaire au contrôle de vivacité FasNet de DeepFace.
+RUN pip install --no-cache-dir torch==2.2.2+cpu --extra-index-url https://download.pytorch.org/whl/cpu
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Génération propre du script d'initialisation et exécution
-RUN printf "from deepface import DeepFace\n\
-import numpy as np\n\
-img = np.zeros((100, 100, 3), dtype=np.uint8)\n\
-try:\n\
-    DeepFace.extract_faces(img_path=img, anti_spoofing=True, enforce_detection=False)\n\
-except Exception:\n\
-    pass\n\
-try:\n\
-    DeepFace.verify(img, img, model_name='ArcFace', enforce_detection=False)\n\
-except Exception:\n\
-    pass\n\
-" > warmup.py && python warmup.py && rm warmup.py
+# Téléchargement des poids pendant la construction (détecteurs, ArcFace, FasNet) : le premier appel
+# n'a plus à les télécharger, et une dépendance manquante fait échouer la construction au lieu
+# d'échouer en silence à chaque comparaison.
+COPY warmup.py .
+RUN python warmup.py && rm warmup.py
 
 COPY . .
 
